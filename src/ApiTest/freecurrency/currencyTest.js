@@ -20,7 +20,10 @@ app.post('/historical-rates', async (req, res) => {
     const response = await axios.get(apiUrl);
 
     // Handle the response as needed
-    res.json(response.data);
+    const value = response.data.data[currencies].value;
+
+    // Send only the value in the response
+    res.json({ value });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });

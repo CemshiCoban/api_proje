@@ -1,21 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const axios = require('axios');
-const openai = require('openai');
-const Twitter = require('twitter');
-const connectDB = require('../db');
-const Currency = require('../models/Currency');
+import express from 'express';
+import axios from 'axios';
+import OpenAI from 'openai';
+import Twitter from 'twitter';
+import connectDB from '../db.js';
+import Currency from '../models/Currency.js';
+import dotenv from 'dotenv';
 
 connectDB();
+dotenv.config();
+
+const router = express.Router();
 
 // OpenAI API configuration
 const openaiApiKey = process.env.OPENAI_API_KEY;
-const openaiClient = new openai.OpenAI(openaiApiKey);
+const openaiInstance = new OpenAI(openaiApiKey);
 
 // Currency API endpoint
 const currencyApiUrl = 'https://freecurrencyapi.net/api/v3/historical';
 const apiKey = process.env.FREE_CURRENCY_API_KEY;
-
 
 // Twitter API configuration
 const twitterConfig = {
@@ -30,54 +32,49 @@ const twitterClient = new Twitter(twitterConfig);
 router.post('/convert', async (req, res, next) => {
   try {
     // Extract parameters from the request
-    const { base_currency, date, target_currency } = req.body;
+    const { date, base_currency, currencies } = req.body;
 
     // Make a request to the Free Currency API
-    const currencyApiResponse = await axios.get(`${currencyApiUrl}?base_currency=${base_currency}&apikey=${apiKey}`);
-    const exchangeRate = currencyApiResponse.data.data[target_currency];
+    const apiUrl = `${currencyApiUrl}?apikey=${apiKey}&currencies=${currencies}&date=${date}&base_currency=${base_currency}`;
+    const response = await axios.get(apiUrl);
+    
+    const value = response.data.data[currencies].value;
 
     // Calculate the converted value
-    const value = 1 / exchangeRate;
+    const exhangeRate = 1 / value;
 
     // Generate a quote using OpenAI API
-    const quoteResponse = await openaiClient.chat.completions.create({
-      messages: [{ role: "system", content: "Write a motivational financial quote from a famous person." }],
-      model: "gpt-3.5-turbo"
+    const completion = await openaiInstance.chat.completions.create({
+      messages: [
+        { role: "user", content: "Write a motivational financial quote from a famous person." }
+      ],
+      model: "gpt-4-0125-preview",
     });
 
-    const quote = quoteResponse.data.choices[0].text.trim();
+    console.log("Completion data:", completion.data)
+    const quote = completion.choices[0].message.content;
 
-    // Tweet the information
-    const tweet = `${date} tarihinde 1 ${base_currency} ${value.toFixed(3)} ${target_currency}'dir.\n"${quote}"`;
 
-    // Send the tweet
-    twitterClient.post('statuses/update', { status: tweet }, (error, tweetData, response) => {
-      if (error) {
-        console.error('Error tweeting:', error);
-        res.status(500).json({ error: 'Error tweeting' });
-      } else {
-        // Save the information to the database using Mongoose
-        const currency = new Currency({
-          base_currency,
-          target_currency,
-          date,
-          value,
-          quote,
-          user_id: req.user.id,
-        });
-        currency.save();
 
-        // Respond with success
-        res.json({
-          id: currency._id,
-          base_currency,
-          target_currency,
-          date,
-          value,
-          quote,
-          tweet_success: true,
-        });
-      }
+       // Save the information to the database using Mongoose
+    const currency = new Currency({
+      base_currency,
+      target_currency: currencies,
+      date,
+      value,
+      quote,
+      user_id: req.user ? req.user.id : undefined, // Handle the case when req.user is undefined
+    });
+    await currency.save();
+
+    // Respond with success
+    res.json({
+      id: currency._id,
+      base_currency,
+      target_currency: currencies,
+      date,
+      value,
+      quote,
     });
   } catch (error) {
     // Handle errors
@@ -86,4 +83,4 @@ router.post('/convert', async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

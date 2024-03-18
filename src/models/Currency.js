@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const currencySchema = new mongoose.Schema({
   base_currency: String,
@@ -11,4 +11,4 @@ const currencySchema = new mongoose.Schema({
 
 const Currency = mongoose.model('Currency', currencySchema);
 
-module.exports = Currency;
+export default Currency;
