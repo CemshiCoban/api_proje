@@ -1,3 +1,5 @@
+// routes/currencyConverter.js
+
 import express from 'express';
 import axios from 'axios';
 import OpenAI from 'openai';
@@ -5,9 +7,11 @@ import Twitter from 'twitter';
 import connectDB from '../db.js';
 import Currency from '../models/Currency.js';
 import dotenv from 'dotenv';
+import verifyToken from '../middleware/authMiddleware.js';
+
+dotenv.config();
 
 connectDB();
-dotenv.config();
 
 const router = express.Router();
 
@@ -29,7 +33,7 @@ const twitterConfig = {
 
 const twitterClient = new Twitter(twitterConfig);
 
-router.post('/convert', async (req, res, next) => {
+router.post('/convert', verifyToken, async (req, res, next) => {
   try {
     // Extract parameters from the request
     const { date, base_currency, currencies } = req.body;
@@ -54,18 +58,17 @@ router.post('/convert', async (req, res, next) => {
     console.log("Completion data:", completion.data)
     const quote = completion.choices[0].message.content;
 
-
-
-       // Save the information to the database using Mongoose
+    // Save the information to the database using Mongoose
     const currency = new Currency({
       base_currency,
       target_currency: currencies,
       date,
       value,
       quote,
-      user_id: req.user ? req.user.id : undefined, // Handle the case when req.user is undefined
+      user: req.userId, // Set the user ID
     });
     await currency.save();
+    await currency.populate('user').execPopulate();
 
     // Respond with success
     res.json({
@@ -75,6 +78,7 @@ router.post('/convert', async (req, res, next) => {
       date,
       value,
       quote,
+      user: currency.user,
     });
   } catch (error) {
     // Handle errors
