@@ -4,14 +4,12 @@ import express from 'express';
 import axios from 'axios';
 import OpenAI from 'openai';
 import Twitter from 'twitter';
-import connectDB from '../db.js';
-import Currency from '../models/Currency.js';
+import connectDB from '../../server/runDatabase.js';
+import Currency from '../../models/Currency.js';
 import dotenv from 'dotenv';
-import verifyToken from '../middleware/authMiddleware.js';
+import verifyToken from '../../middleware/authMiddleware.js';
 
 dotenv.config();
-
-connectDB();
 
 const router = express.Router();
 
@@ -68,7 +66,6 @@ router.post('/convert', verifyToken, async (req, res, next) => {
       user: req.userId, // Set the user ID
     });
     await currency.save();
-    await currency.populate('user').execPopulate();
 
     // Respond with success
     res.json({
