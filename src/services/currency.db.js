@@ -4,7 +4,7 @@ export async function saveToCurrency(currencyData, userId) {
   try {
     const currency = new Currency({
       base_currency: currencyData.base_currency,
-      target_currency: currencyData.currencies,
+      target_currency: currencyData.firstCurrency,
       date: currencyData.date,
       value: currencyData.value,
       quote: currencyData.quote,

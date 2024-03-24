@@ -10,20 +10,22 @@ router.post('/convert', async (req, res, next) => {
   try {
     // Extract parameters from the request
     const { date, base_currency, currencies } = req.body;
+    const firstCurrency = currencies.split(',')[0];
 
     // Make a request to the Free Currency API
-    const apiUrl = `${currencyApiUrl}?apikey=${freeCurrencyApiKey}&currencies=${currencies}&date=${date}&base_currency=${base_currency}`;
+    const apiUrl = `${currencyApiUrl}?apikey=${freeCurrencyApiKey}&currencies=${firstCurrency}&date=${date}&base_currency=${base_currency}`;
     const currencyData = await makeCurrencyApiRequest(apiUrl);
     
-    const value = currencyData[currencies].value;
+    const value = currencyData[firstCurrency].value;
 
     // Generate a quote using OpenAI API
     const quote = await generateQuote(openaiInstance);
 
+    console.log('Extracted parameters:', { date, base_currency, firstCurrency, value, quote, userId: req.userId });
     // Save the information to the database using Mongoose
     const currencyId = await saveToCurrency({
       base_currency,
-      currencies,
+      firstCurrency,
       date,
       value,
       quote,
@@ -33,7 +35,7 @@ router.post('/convert', async (req, res, next) => {
     res.json({
       id: currencyId,
       base_currency,
-      target_currency: currencies,
+      firstCurrency,
       date,
       value,
       quote,
