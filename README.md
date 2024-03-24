@@ -1,6 +1,6 @@
 # Currency Converter API
 
-The Currency Converter API is a Node.js project developed to practice JavaScript skills and interact with different APIs. It provides functionalities to convert currencies based on historical exchange rates retrieved from the Free Currency API, generate motivational financial quotes using the OpenAI API, and store the request data in a MongoDB database.
+The Currency Converter API is a Node.js project developed to practice JavaScript skills and learn to interact with different APIs. It provides functionalities to convert currencies based on historical exchange rates retrieved from the Free Currency API, generate motivational financial quotes using the OpenAI API, and store the request data in a MongoDB database.
 
 ## Features
 
