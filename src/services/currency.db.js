@@ -1,6 +1,6 @@
-import Currency from '../../../../models/Currency.js';
+import Currency from '../models/Currency.model.js';
 
-export async function saveToDatabase(currencyData, userId) {
+export async function saveToCurrency(currencyData, userId) {
   try {
     const currency = new Currency({
       base_currency: currencyData.base_currency,

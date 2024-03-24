@@ -1,4 +1,3 @@
-import debug from 'debug';
 import http from 'http';
 import express from 'express';
 import { fileURLToPath } from 'url';
@@ -23,7 +22,7 @@ export default (PORT) => new Promise((resolve, reject) => {
     app.use(cookieParser());
     app.use(express.static(path.join(__dirname, 'public')));
 
-    app.use('/home', routes);
+    app.use('/', routes);
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {

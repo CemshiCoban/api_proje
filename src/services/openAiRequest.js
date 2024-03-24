@@ -1,4 +1,4 @@
-import { openaiInstance } from '../apiKey/config.js';
+import { openaiInstance } from './Config/config.js';
 
 export async function generateQuote() {
   try {

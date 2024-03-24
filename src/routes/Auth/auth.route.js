@@ -1,10 +1,7 @@
 import express from 'express';
-import User from '../../models/User.js';
+import User from '../../models/User.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config(); // Load environment variables from .env file
 
 const router = express.Router();
 
